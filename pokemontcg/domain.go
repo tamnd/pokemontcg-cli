@@ -46,10 +46,11 @@ and prints output that pipes into the rest of your tools. No API key required.`,
 func (Domain) Register(app *kit.App) {
 	app.SetClient(newClient)
 
-	// cards: search or list cards.
+	// cards: search cards by query (e.g. pokemontcg cards pikachu).
 	kit.Handle(app, kit.OpMeta{Name: "cards", Group: "read", List: true,
-		Summary: "Search or list Pokemon cards (--name, --set flags)",
-		URIType: "card"}, listCards)
+		Summary: "Search Pokemon cards by name (e.g. pokemontcg cards pikachu)",
+		URIType: "card",
+		Args:    []kit.Arg{{Name: "query", Help: "search query (e.g. pikachu)", Variadic: true}}}, listCards)
 
 	// card: get a single card by ID.
 	kit.Handle(app, kit.OpMeta{Name: "card", Group: "read", Single: true,
@@ -110,10 +111,9 @@ func newClient(_ context.Context, cfg kit.Config) (any, error) {
 // --- input structs ---
 
 type cardsInput struct {
-	Name   string  `kit:"flag" help:"filter by card name (Lucene: name:NAME)"`
-	Set    string  `kit:"flag" help:"filter by set ID (Lucene: set.id:SET)"`
-	Limit  int     `kit:"flag,inherit" help:"max results"`
-	Client *Client `kit:"inject"`
+	Query  []string `kit:"arg,variadic" help:"search query (e.g. pikachu or name:charizard)"`
+	Limit  int      `kit:"flag,inherit" help:"max results"`
+	Client *Client  `kit:"inject"`
 }
 
 type cardInput struct {
@@ -154,7 +154,7 @@ type StringRecord struct {
 // --- handlers ---
 
 func listCards(ctx context.Context, in cardsInput, emit func(*Card) error) error {
-	q := BuildCardQuery(in.Name, in.Set)
+	q := strings.Join(in.Query, " ")
 	cards, err := in.Client.SearchCards(ctx, q, in.Limit)
 	if err != nil {
 		return mapErr(err)
