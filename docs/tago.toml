@@ -1,0 +1,10 @@
+title       = "pokemontcg"
+baseURL     = "https://pokemontcg-cli.tamnd.com/"
+description = "A command line for pokemontcg."
+contentDir  = "content"
+outputDir   = "public"
+theme       = "tago-doks"
+syntaxHighlight = "true"
+
+[params]
+github = "https://github.com/tamnd/pokemontcg-cli"
